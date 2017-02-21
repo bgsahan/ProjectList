@@ -1,0 +1,34 @@
+public class ProjektSingleton {
+    private static ProjektSingleton ourInstance = new ProjektSingleton();
+
+    private ArrayList<Projekt> mProjektList;
+
+    private int mProjectNumber;
+
+    public static ProjektSingleton getInstance() {
+        return ourInstance;
+    }
+
+    private ProjektSingleton() {
+        mProjektList = new ArrayList<Projekt>();
+    }
+
+    public ArrayList<Projekt> getProjectList(){
+        return mProjektList;
+    }
+
+    public void setProjektList(ArrayList<Projekt> ProjektList) {
+        this.mProjektList = ProjektList;
+    }
+
+    public int getProjectNumber() {
+        return mProjectNumber;
+    }
+
+    public void setProjectNumber(int projectNumber) {
+        this.mProjectNumber = projectNumber;
+    }
+
+
+
+}
