@@ -95,6 +95,7 @@ public class MainProjectLister extends ListFragment implements
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l){
 
+        projektArrayList = projektSingleton.getProjectList();
         projektArrayList.remove(i);
         ListOfP.remove(i);
         adapter.notifyDataSetChanged();
