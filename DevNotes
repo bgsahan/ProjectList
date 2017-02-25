@@ -1,0 +1,140 @@
+1.Main Projects List View
+    - Main Activity (Parent Activity)
+    - Main Projects List Fragment Class
+    - Main Fragment Layout
+    - Projects list
+    - Project add button - text area
+    - Project delete long button
+    - Persistance
+
+2.Project Details View
+    - Project Details Fragment Class
+    - Project Details Fragment Layout
+    - Details list
+    - Details add button - text area
+    - Details delete long button
+    - Persistance
+
+3.Project ToDo View
+    - Project ToDo Fragment Class
+    - Project ToDo Fragment Layout
+    - ToDo list checkbox
+    - ToDo add button - text area
+    - ToDo delete long button
+    - Persistance
+
+STRUCTURE:
+1) When you touch on a project it taks you to project details list view. So no need to have a button for project details view on top menu
+
+2) On top menu, you can have a button for "Main Projects List" and "Project ToDo List" when you are on "Project Detais List" View.
+
+3) On top menu, you can have a button for "Main Projects List" and "Project Details List" when you are on "Project ToDo List" View.
+
+4) There is no need for a top menu when you are on "Main Projects List" View.
+
+5) There should be text area - add button in all 3 Views.
+
+6) There should be persistance throughout the app.
+
+7) When long touched on an item it should ask if you want to delete it with a dialogue box maybe?
+
+
+
+DEVELOPING NOTES
+
+28.01.2017
+- 3 ana sayfa için 2 fragment ve 1 listfragment class yazıldı,
+- 3 ana sayfa için 3 layout yapıldı
+- ListFragmentta RaayAdapter kullanılarak array içindeki listelenme sağlandı.
+- Fragment'lar arasındaki iletişim (düpmeye basınca fragwnt değiştirme) interface'ler ile sağlandı. İlgili düğmeye basma methodu fragmanet içinde yazıldı. Fragment içinde interface methodu yazıldı. MainActivity class'ı içinde bu method implement edilip, method Fragment Transaction ile bağlantı sağlandı.
+- Fragment'ler arasındaki iletişim tamamen interface ile yapılmalı. Main Activity class'ı içinde bütün interfaceler implement yapıldı.
+- ListView widgeti'ı eklendi MainProjectLlister'a daha sonra bu listViewArrayAdapter ile bağlandı.
+- Fragment'lar yapılırken code ile runtime code ile oluşturulduğundan bir container frame ilave edildi.
+
+04.02.2017
+- Projekt class oluşturuldu. İçinde title ve details arraylist eklendi..getters ve Setters lar kuruldu. Serializable yapıldı.
+- Singleton oluşturuldu. Projeckt class'ı içeren Arraylist eklendi.
+-MainProjectLlister fragmenti içinde EditText ve Button eklendi. Button'a tıklatınca EditText'ten getText() ile yazını alınıp, bu yazıyı parametre olarak kullanıp Projekt object'ini oluşturmak ve bu projeckt object'ini Singleton içinde bulunan Project Arraylist'e ekleme methodları eklendi. Sonunda adapter.notifydatasetchanged() methodu ile listenin güncellenmesi sağlandı. ArrayAdapter String olarak bırakıldı. Ama Project class'ı içeren ArrayAdapter yapılabilr mi? Desgn patterni mi nasıldır? bizim Projekt objectimize uyacak Custom Adapter yapımalı.
+- MainProjectLister Layout'unda graivty_layout'lar kullanılarak liste, edittext ve button'a paylaştırıldı.
+- ProjectDetails Layout ListView eklenerek yeniden düzenlendi
+- ProjectDetails class ListFragment ile extend yapıldı ve ArrayAdapter eklendi.
+- MainProjectLister'da listitemlara basıldığında ProjectDetails Fragmentina geçecek şekilde onItemClickListener düzenlendi. Interface ve methodu yapıldı. MainActivity'de bu interface implement edilerek FragmentManager ile ProjectDetails'a replace yapıldı.
+
+05.02.2017
+- MainProjectLister onItemclick methodu ile ProjectDetails fragmenti arasındaki bağlantı için Singleton classında bir projectNumber eklendi. Burada listView'da seçilen item'in sırasına göre bu projectnumber güncellenmekte, projectDetails fragmentinda bu Singleton rakamına ulaşılabilemket ve böylece hangi ilgili prejenin mDetais'ına ulaşılabilmektedir.
+- ProjectDetails'da bu bağlantı için OnCreate methodu kullanıldı. Çünkü initialize için CreateView'den önce olan bir methodun kullanılması gerekiyor (onActivityCreated değil yani).
+-MainProjectLister'ın Add button methodunda projelerin hem Project class olarak ArrayList'e ekleme hemde String olarak farklı bir ArrayList'e ekleme şeklinde paralel bir yapı benimsendi. İki ArryList arasındaki köprü ArrayLlist'in index sırasıyla ve Singletondaki project number ile kurulud. ArrayAdapter'daki "i" Singletondaki ProjectNumber'a assign edildi.
+- Projeckt class'ın consructor methodu içinde sadece mTitle assign edilmişti. Burada mDetails new ArrayList<String>() constructor ile ArrayList oluşturuldu. Bu çok önemli. Bir çok hata burdan çıktı.
+- Plan: *List fragment ve listView ProjectDetails için
+*Singleton içindeki arraylistin içindeki projektlerin içindeki mDetails arraylist yansıtılacak
+*MainProjektLister'daki itemonclick ile ProjektDetails fragmentindaki ilgili projekt objesinin mDetails'i yuklenecek
+    *onClick'te diğer fragmenti yukle
+    *intent veye pref ile tiklanan item'in indexini al
+    *Bu index ile ProjecktArrayList'teki Projekti bul
+    *Bu projektin mDetails ArrayList'ini ekrana ver.
+
+07.02.2017
+*MainProjectLister class ve layout'una çok benzer şekilde button ve editText kombinasyou eklendi ve ilgili java kodları yazılarak, MainProjectLister ekranında seçilen projenin ArrayList'teki sırası singleton.ProjectNumber vasıtasıyla ArrayList.get(). methodu ile alınıp bu ArrayList'e .add() methodu ile EditText'e yazılanlar eklendi. Sadece String object kullanıldığı için ArrayList basit olarak halledildi.
+
+09.02.2017
+*Persistance üzerinde uğraşıldı. Projeckt class serializable edilmişti. Bu nedenle ArrayList<Projekt> şnternal storage olarak kaydedilebildi. WriteFile ve ReadFile methodları MainProjektLister fragment'ı içinde yazıldı. method'larda getActivity() kullanıldı. Okuma methodu OnCreate() cycl'de, yazma methodu OnAddClick button'una basıldığında harekete geçti. Burada Projekt ArrayList ve String ArrayList olmak üzere 2 farklı dosyanın paralel kaydedilmesi ve okunması söz konusu. Custom ArrayList yapılarak bu teke indirilebilir. ProjektDetails Frgmentinda sadece ArrayList Projekt için yazma ce okuma yapıldı. Burada okumanın hangi lifecycle ına koyulması gerektiğini araştır. Çünkü ileri geri yapınca ilk seferdi loading başarılı gözükse bile details gözükmüyor.
+* SsetOnItemLongClickListener için class'a implement yap. Daha sonra getListView() kullanarak onLongclick'e zemin hazırla. Override mehod ile OnLongClick methodunu yaz. hem String hem de PRojekt için ArrayList'ten remove yap. Dikkat edilmesi gereken nokta hem String hem de Projekt arrayListlerin eşit olması gerekiyor. Yoksa crash oldu. ProjectDetails'ın kendi arrayList'i için setOnItemLongClickListener yap. Çalışma için save/load özellikleri devre dışı bırakıldı.
+
+11.02.2017
+*Custom ArrayAdapter üzerinde çalışıldı. Bunun için TodoProject class oluşturuldu. Checkbox ve text Fieldslar ve setters/getters yapıldı. Projeckt class'a todolist eklendir ve constructora ilave edildi. CustomArrayAdapter için row layout yapıldı. Burada checkbox ve text koyuldu. Checkbox'un focusable özelliği uncheck yapıldı. Bu sayede listviewdeki rowlar tıklanabilir oldu. CustomArrayAdapter için ayrı bir classda gerekli consructor ve getView düzeltmeleri yapıldı. burada checkbox'ın 1 veya 0 olması ile ilgili ayrıca bir if-else condition yazmak lazım. ProjectTodo fragmenti içinde OnItemLongClick remove eklendi. ProjectsDetails'e çok benzer şekilde bir yapı ile Singleton içindeki projectNumer'ın aldığı int'e göre projenin ve todolistin seçimi yapıldı. Project_TOdo_list_layout da gerekli listview düğme ve editText eklemeleri yapıldı. ProjectTodo fragmenti içinde CustomAdapter'i listview'e bağayan kod yazıldı. Peristance yapıldı.
+*EditText ve Buttonlar için Fragent layoutlarının içine ikinci bir LinearLayout-horizontal eklendi. Ve ekranın dibine yatay olarak yapıldı. LineraLayout: ayout height 50 dp, layout weight 0 | EditText: padding-Left 5 dp, horizontal center, height 48dp, layout weight 1 | Button: horizontal center, layout weight 0, height 48dp, width 96dp. Butun bunlar style ile (css gibi) otomatik olarak yapılabilir mi?
+
+12.02.2017
+*TimeStamp yapıldı. Time stampe ProjectDetails fragmenti içinde her bir listi sonuna String olarak eklendi. Aşağıdaki kod kullanıldı. DetailsTitle'ın SelectedDetails String ArrayListine add() methodu ile eklendiği bölüme + ile ilave edilerek bu tarih girildi.
+long currentTime = System.currentTimeInMillis();
+DateFormat dateFormat = new SimpleDateFormat("yy/MM/dd");
+Date date = new Date(currentTimeMillis);
+String currentTime = dateFormat.format(date);
+*Edittexte empty yazımı önlemek çin basit bir if condition kullanıldı. Kod aşağıda: Burada trim() birden çok aynı karakteri yani boşluğu kesmek içn kullanıldı. Bu kod AddButtonOnclickerListener'ın ilk satırına eklend. return ile method dan çıkılması sağlandı.
+if(TextUtils.isEmpty(addProjectEditText..getText().toString().trim())){
+Toast.makeText(this);
+return;
+}
+
+13.02.2017
+*Action Bar'a ikonlar eklendi. MainProjectList'te sadece app title yazıcak, ProjectDetails ve ProjectTodo'da projenin title'ı ve üç ikon olacak şekilde düzenlendi. İlk önce res klasörüne sağ tıklayıp  new directory ile yeni bir menu klasörü oluşturuldu. Bu klasörün içine sağ tıklayıp yeni bir menu xml oluşturuldu. Bu menuyu fragmentlerda actionbarın değişmesi için kullanacağız. Res'e sağ tıklayıp new ile Vector Asset'ten gerekli düğmeler xml olarak drawables'a alındı. Bu düğmelerin xm kodlarını oynayarak rengini boyutunu değiştirebiliyorsun. Sonra Menu xml'de gerekli değişikliker yapılarak üç tane <item> eklendi ve bu itemların ikonları ve id'leri ilgili ikonlara bağlandı. ShowAcon seçeneğine always yazarak hep actionbarda görünmesi sağlandı ikonların. XML kısmı bittiktens onra fragmentlerin içinde java kodu yazmaya geldi sıra. 1. aşamda OnCreate methodu içinde setHasOptionsMenu(true); yazıldı. Bu sayede farklı fragmentlerda farklı action bar stilleri kullanımı enable edildi. Daha sonra onCreateOptionsMenu ile bizim yaptığımız menu inflate edildi. Dahas onra OnOptionItemSelected methodu ile menude seçilen ikonların hangi action ları yapacağı yazıldı (R.id.IKON NAME) ile. Actionbar'ın title'ı ise OnCreateView methoduna yazılan getActivity().setTitle(selectedProject.getTitle()) kodu ile sağlandı. OnCreate() e koymadık bu kodu çünkü sağ sol geçişlerde OnCreate() call yapılmıyor ve title güncellemiyor.
+
+15.02.2016
+*Action bar içindeki ikonlara basınca fragment'lere gidecek kodları yerleştirdik. Burda ilgili ikona tıklayınca yürütülen kodun altındaki return false olması gerekiyor farklı bir fragmente gönderildiği için. Onclick event listener falan yok çünkü zaten Case var.
+
+16.02.2017
+*Add düğmelerin arka planını color yapınca tamamen o boyutun şeklini alıyorlar. Actionbar'daki ikonların beyaz olmasını istiyorsan internetten beyaz ikon indir ve Drawables klasörğne ekle! İkonlar sadece .svg ve .png olabiliyor. Ama .svg nasıl .xml yapılır??
+
+17.02.2017
+*Actionbar'da home Icon'a istediğimiz resmi koyabilmek için MainActivity'de onCreate cycle'da aşağıdaki kodu yazdık. extends AppComp olduğu için getSupportActionBar() kullandıldı. Eğer sadece geriye dönüş ok işareti istenseydi setDisplayHomeAsUpEnabled(true); kodu kullanılabilirdi.
+getSupportActionBar().setDisplayShowHomeEnabled(true);
+getSupportActionBar().setIcon(R.drawable.action_bar_logo);
+
+18.02.2017
+*ListView için arrayAdapter'lerda kullandığımız hazır Single_Item1 layout'ları aslında sadece bir TextView içeren layout'lar. Bu layout'un koduna ulaşıldı. Yekneksaklık olması açısından Custom ArayAdapter için kullanılan custom row layout'unda bu özellikler copy/paste yapılarak aynı genişlik ve büyüklükte listView itemlerın olması sağlandı.
+
+19.02.2017
+*Action Bar'da Menu Item'e basılınca ikon değişmesi ve böyle kalması sağlandı. Bunun için onPrepareOptionsMenu() kullanıldı. ActionBAr'da herhangi bir kalıcı değişiklik yapmak istiyorsan mutlaka onPrepareOptionsMenu() kullanman gerekiyor. onCreateOptionsMenu() sadece ilk olulturmada ilk seferde kullanınlıyor. Ayrıca actionBar'ın redraw yapılabilmesi için onPrepareOptionsMenu() içinde invalidateOptionsMenu() methodu kullanıldı. Yai sadece selector ile actionBar güncellemesi yapamıyorsun.
+*Action Bar'a geriye dönemek için ProjectTodo ve ProjectDetails fragment'larına ilgili AppComp kodları iile birlite onCreate cycle'a setDisplayHomeAsUpEnabled(true) eklendi. Bu sayede sol üst köşede geriye dönme ok işareti çıktı. Bu ok işaretinin id'si android.R.id.home. Bu sayede MainProjectlister fragmentina dönecek şekilde kod eklendi. Eğer birden fazla activity'in varsa bunlardan birini paren yapıp bu ok işaretinin sadece diğer activitylerde çıkmasını sağlayabilirsin. Ancak bende sadece bir Activity olduğundan bu ok işareti MainProjectLister'da çıkıyordu Bunu engellemek için MainProjectLister'ın OnCreate cyce'ına setDisplayHomeAsUpEnabled(false); FALSe olarak yazıldı.
+*ProjectTodo alanında Checkbox'a tıklandığında TodoProject class'ının içindeki mChecked int'in değişmesi ille ilgili olarak aşağıdaki kod Custom Array'ın getView kısmına yazıldı:
+if(todoProjekt.getChecked() == 1)
+     cb.setChecked(true);
+ else
+     cb.setChecked(false);
+Daha sonra Custom Array'ın yine getView kısmı içinde Checkbox'a tıklama listener için setOnClickListener yapıldı.
+*Persistance ie ilgili uğraşıldı. Karşılaşılan sorunlar: 1-ilk başta FILENAME null'sa load methodu crash yapıyor. Load olmadan ilk açılıştans orna load çalışıyor. 2-todo check save (checkbox clickte save olmadığından unutuyor) 3-Uygulama açılır açılmaz longclick yapılınca crash. proje ekleyip long click yapınca çalışıyor. Proje içine bir todo veya details ekleyip sonra longclick yapınca yine crash. 4-Project Details veya todo içine birşey yazılınca ilk yazılan şey unutulabiliyor. 
+
+23.02.2017
+*Persistance 1. ve 3. sorunlar çözüldü: MainProjectLister onClick methodunda projectArraylist initialize ediyor. Ancak onItemLongClick methodunda herhangi bir initiliaze yapılmıyor. Bu kısımda initialize yapıldı. Method içindeki initialize'lar method bitiminde sıfırlanır. Bu yüzden null hatası veriyordu. Diğer method'da da initialize yapılması gerekiyor.
+
+24.02.2017
+*Persistance 4. sorun çözüldü: ProjectTodo ragment içinde OnStop() cycle'a Save method eklendi. Böylece bu fragment'tan ne zaman çıkılsa save edilyor. 
+*Persistance 2. problem çözüldü: Segven ProjectDetails'ta onStop cycl'da load methodu koydum. Problem çözüldü. Save method koymak istemiştim. Save method denenebilir.
+
+25.02.2017
+*Her üç fragment'ta EditText'te Add düğmesine basıldıktan sonra setText("") eklenerek sıfırlandı.
+*Dün ProjectDetails'ta OnStop cycle'a eklenen load method yerine save method eklendi. Çalışıyor.
+*Values folder içindeki colour.xml dosyasında renkler değiştirildi. coclors.co gibi internet sitelerinden renk uyumu yardımı alındı.
+*Actionbar logosu ile Up Navigation logosu arasında oluşan 16 dp'lik padding kaynak kodundan geliyor. Bunu elimine etmek için setActionBar() methodunu kullanarak yeni custom bir toolbar.xml yapmak ve padding'i 0'lamak gerekiyor. Ancak ben sadece logo'daki png. resmimm sağına padding ekleyerek hack yaptım. 
+*Hatalar için kullanılan Toast methodları silindi.
+*Launcher icon değiştirildi. Manifest'e hiç dokunma. İkon olmasını istediğin iyi çözünürlükülü bir foto ayarla desktopa. Sol üstteki dosya görünümünü android'ten project'e çevir. App'ın üzerinde sağ tuş tıkla ve New > Image Asset yap. Burda image seç ve istediğin resmi seç. Program otomatik olarak senn için 5 farklı çözünürlükte resmi ayarlıyor. Zaten var olan launcher imasjının üzerine kopyalıyor.
