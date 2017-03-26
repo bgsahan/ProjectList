@@ -1,3 +1,42 @@
+package com.example.lenovo.projectlist;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.ListFragment;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
+/**
+ * Created by Lenovo on 28.1.2017.
+ */
+
 public class ProjectDetails extends ListFragment implements AdapterView.OnItemLongClickListener {
 
     ArrayAdapter<String> adapter;
@@ -19,7 +58,7 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
     String currentTimeString;
 
 //for Save & Load
-    private final String FILENAME="testfile13.txt";
+    private final String FILENAME="testfile15.txt";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -32,9 +71,11 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
         listOfDetail = selectedProject.getDetails();
 
         currentTime = System.currentTimeMillis();
-        dateFormat = new SimpleDateFormat("yy/MM/dd");
+        dateFormat = new SimpleDateFormat("dd/MM/yy");
         date = new Date(currentTime);
         currentTimeString = dateFormat.format(date);
+
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
 
 //This is for enabling actionbar in different fragments
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -48,8 +89,6 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
         projektSingleton.setProjektList(getSavedArrayList());
 
         View view = inflater.inflate(R.layout.project_details_layout, container, false);
-        textView = (TextView) view.findViewById(R.id.editText);
-        textView.setText("SingletonProjectNo: " + Integer.toString(projectNumber) + " ProjectArrayList: " + Integer.toString(projektArrayList.size()));
         addDetailsButton = (Button) view.findViewById(R.id.addDetailsButton);
         addDetailsEditText = (EditText) view.findViewById(R.id.addDetailsEditText);
 
@@ -71,6 +110,7 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
                 adapter.notifyDataSetChanged();
 
                 saveArrayList(projektArrayList);
+                addDetailsEditText.setText("");
 
             }
 
@@ -98,15 +138,47 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l){
 
-        listOfDetail.remove(i);
-        adapter.notifyDataSetChanged();
-        saveArrayList(projektArrayList);
-        Toast.makeText(getActivity(), "LongClick works!", Toast.LENGTH_SHORT).show();
+        final int num = i;
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+        //alert.setTitle("Alert!!");
+        alert.setMessage("Confirm deleting?");
+        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                listOfDetail.remove(num);
+                adapter.notifyDataSetChanged();
+                saveArrayList(projektArrayList);
+
+                dialog.dismiss();
+
+            }
+        });
+        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                dialog.dismiss();
+            }
+        });
+
+        alert.show();
 
         return true;
     }
 
-//Actionbar inflating
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        //projektSingleton.setProjektList(getSavedArrayList());
+        saveArrayList(projektArrayList);
+        projektSingleton.setProjektList(getSavedArrayList());
+    }
+
+    //Actionbar inflating
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
         inflater.inflate(R.menu.submenu, menu);
     }
@@ -115,7 +187,6 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
         int id = item.getItemId();
 
         if(id == R.id.action_details){
-            Toast.makeText(getActivity(), "Action Details", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -124,7 +195,8 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
             ProjectTodoFragmentChanger fragInterface = (ProjectTodoFragmentChanger) getActivity();
             fragInterface.projectTodoChangeFragment(frag);
 
-            Toast.makeText(getActivity(), "Action Todo", Toast.LENGTH_SHORT).show();
+            hideKeyboard(getActivity());
+
             return false;
         }
 
@@ -132,6 +204,9 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
             ProjectDetails frag = new ProjectDetails();
             ProjectMainListFragmentChanger fragInterface = (ProjectMainListFragmentChanger) getActivity();
             fragInterface.projectMainListChangeFragment(frag);
+
+            hideKeyboard(getActivity());
+
             return true;
         }
 
@@ -142,7 +217,6 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         menu.findItem(R.id.action_details).setIcon(R.drawable.ic_create_white_24dp);
-        Toast.makeText(getActivity(), "2", Toast.LENGTH_SHORT).show();
 
         getActivity().invalidateOptionsMenu();
 
@@ -159,10 +233,8 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
             out.writeObject(arrayList);
             out.close();
             fos.close();
-            Toast.makeText(getActivity(), "Details Success!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -177,15 +249,27 @@ public class ProjectDetails extends ListFragment implements AdapterView.OnItemLo
             savedArrayList = (ArrayList<Projekt>) ois.readObject();
             ois.close();
             fis.close();
-            Toast.makeText(getActivity(), "Details Loaded!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException | ClassNotFoundException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
         return savedArrayList;
 
     }
+
+//Method for hiding soft keyboard between fragments//////////////////////////
+    public static void hideKeyboard(Context ctx) {
+        InputMethodManager inputManager = (InputMethodManager) ctx
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        // check if no view has focus:
+        View v = ((Activity) ctx).getCurrentFocus();
+        if (v == null)
+            return;
+
+        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
 
     //Interface
 
