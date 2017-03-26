@@ -1,3 +1,10 @@
+package com.example.lenovo.projectlist;
+
+import java.util.ArrayList;
+
+/**
+ * Created by Lenovo on 4.2.2017.
+ */
 public class ProjektSingleton {
     private static ProjektSingleton ourInstance = new ProjektSingleton();
 
