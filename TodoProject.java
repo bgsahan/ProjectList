@@ -1,3 +1,11 @@
+package com.example.lenovo.projectlist;
+
+import java.io.Serializable;
+
+/**
+ * Created by Lenovo on 11.2.2017.
+ */
+
 public class TodoProjekt implements Serializable {
 
     private String mTodo;
