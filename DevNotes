@@ -133,8 +133,31 @@ Daha sonra Custom Array'ın yine getView kısmı içinde Checkbox'a tıklama lis
 
 25.02.2017
 *Her üç fragment'ta EditText'te Add düğmesine basıldıktan sonra setText("") eklenerek sıfırlandı.
-*Dün ProjectDetails'ta OnStop cycle'a eklenen load method yerine save method eklendi. Çalışıyor.
+*Dün ProjectDetails'ta OnStop cycle'a önce save method sonra load method eklendi. Çalışıyor.
 *Values folder içindeki colour.xml dosyasında renkler değiştirildi. coclors.co gibi internet sitelerinden renk uyumu yardımı alındı.
 *Actionbar logosu ile Up Navigation logosu arasında oluşan 16 dp'lik padding kaynak kodundan geliyor. Bunu elimine etmek için setActionBar() methodunu kullanarak yeni custom bir toolbar.xml yapmak ve padding'i 0'lamak gerekiyor. Ancak ben sadece logo'daki png. resmimm sağına padding ekleyerek hack yaptım. 
 *Hatalar için kullanılan Toast methodları silindi.
 *Launcher icon değiştirildi. Manifest'e hiç dokunma. İkon olmasını istediğin iyi çözünürlükülü bir foto ayarla desktopa. Sol üstteki dosya görünümünü android'ten project'e çevir. App'ın üzerinde sağ tuş tıkla ve New > Image Asset yap. Burda image seç ve istediğin resmi seç. Program otomatik olarak senn için 5 farklı çözünürlükte resmi ayarlıyor. Zaten var olan launcher imasjının üzerine kopyalıyor.
+
+26.02.2017
+*Actionbar'daki app ikonunun sadece ana fragment'ta görünmesi için, MainActivity'deki getSupportActionBar().setDisplayShowHomeEnabled(true); kısmını sildik. bu kısmı compat kodu ile main fragment'ın onCreate'ine ekledik aşaiğıdaki şekilde. Diğer fragmentlara'da bu kodu ekleyip sonundaki true yerine false yaptık. Bu şekilde diğer fragmentlerda ikon çıkmıyor.
+((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(true);
+((AppCompatActivity) getActivity()).getSupportActionBar().s.setIcon(R.drawable.action_bar_logo);
+*EditText'lerde yazı satır sonuna gelince evam ediyordu. Bir aşağıdaki satıra geçmesi için EditText xml koduna Input:textMultiLine eklendi.
+*App'i ilk yükleyip açtığında textfile olmadığı için load yapılamıyor ve nullException erroru ile crash oluyordu. Bunu halletmek için File class'ını kullanarak bir if condition ile Textfile exist'mi diye kontrol ediliyor. Varsa load yoksa new ArrayList() ile sorun çözüldü. Load'ın 1. sorunu bu şeilde çözüldü
+*Her fragment geçisişinde soft keyboard persist kalıyordu. Her geçişte keyboard'un ekrandan silinmesi için her fragment'a hideKeyboard method'u eklendi ve bu method actionbar'ın her bir düğmesine geçişi sırasında call yapıldı:
+public static void hideKeyboard(Context ctx) {
+    InputMethodManager inputManager = (InputMethodManager) ctx
+    .getSystemService(Context.INPUT_METHOD_SERVICE);
+    // check if no view has focus:
+     View v = ((Activity) ctx).getCurrentFocus();
+     if (v == null)
+        return;
+    inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+ }
+*Telefonun geri düğmesine bsınca backstack'e eklenen herbir fragment'e geri dönüyor ve yazılanlar siliniyordu. MainAcitivity'de onBackPress cycle eklenerek orad yazılan kod ile nerede geri tuşuna basılırsa basılsın uygulamadan çıkıyor. Bu şekilde yazılanlar kaybolmuyor. Geçici bir önlem olarak düşünülebilir.
+
+27.02.2017
+*Her 3 fragment içinde AlertDialog.Builder class'ını kullanarak onItemlongClick'lerde silme olayı için alert dialog box oluşturduk. burada Adapter'den gelen i'nin final olarak tanımanması gerekiyor. getActivity() methodu kullanılıyor.
+
+OFFICIALLY APPLICATION FINISHED
