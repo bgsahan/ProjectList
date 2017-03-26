@@ -1,3 +1,12 @@
+package com.example.lenovo.projectlist;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+
+/**
+ * Created by Lenovo on 4.2.2017.
+ */
+
 public class Projekt implements Serializable{
 
 //Fields
