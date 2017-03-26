@@ -1,3 +1,36 @@
+package com.example.lenovo.projectlist;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.ListFragment;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
+/**
+ * Created by Lenovo on 29.1.2017.
+ */
+
 public class MainProjectLister extends ListFragment implements
         AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener {
@@ -13,20 +46,24 @@ public class MainProjectLister extends ListFragment implements
 
     ArrayList<String> ListOfP;
 
-    private final String FILENAME="testfile13.txt";
-    private final String FILENAME2="testfile14.txt";
+    private final String FILENAME="testfile15.txt";
+    private final String FILENAME2="testfile16.txt";
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ListOfP = new ArrayList<String>();
-        projektArrayList = new ArrayList<Projekt>();
         projektSingleton = ProjektSingleton.getInstance();
         projektSingleton.setProjektList(getSavedArrayList());
         ListOfP = getSavedStringList();
 
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(true);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setIcon(R.drawable.action_bar_logo);
+
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -36,6 +73,7 @@ public class MainProjectLister extends ListFragment implements
 
         addProjectButton = (Button) view.findViewById(R.id.addProjectButton);
         addProjectEditText = (EditText) view.findViewById(R.id.addProjectEditText);
+
 
 //addProjectButton onClck method
 
@@ -58,12 +96,14 @@ public class MainProjectLister extends ListFragment implements
                 adapter.notifyDataSetChanged();
                 saveArrayList(projektArrayList);
                 saveStringList(ListOfP);
+                addProjectEditText.setText("");
 
             }
 
         });
 
-        getActivity().setTitle("Bulut Note");
+        getActivity().setTitle("DearBear Notes App");
+
 
         return view;
 
@@ -88,6 +128,8 @@ public class MainProjectLister extends ListFragment implements
         ProjectListFragmentChanger fragInterface = (ProjectListFragmentChanger) getActivity();
         fragInterface.projectListChangeFragment(frag);
 
+        hideKeyboard(getActivity());
+
         projektSingleton.setProjectNumber(i);
 
     }
@@ -95,16 +137,44 @@ public class MainProjectLister extends ListFragment implements
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l){
 
-        projektArrayList = projektSingleton.getProjectList();
-        projektArrayList.remove(i);
-        ListOfP.remove(i);
-        adapter.notifyDataSetChanged();
-        saveArrayList(projektArrayList);
-        saveStringList(ListOfP);
-        Toast.makeText(getActivity(), "LongClick works!", Toast.LENGTH_SHORT).show();
+        final int num = i;
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+        //alert.setTitle("Alert!!");
+        alert.setMessage("Confirm deleting?");
+        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                projektArrayList = projektSingleton.getProjectList();
+                projektArrayList.remove(num);
+                ListOfP.remove(num);
+                adapter.notifyDataSetChanged();
+                saveArrayList(projektArrayList);
+                saveStringList(ListOfP);
+
+                dialog.dismiss();
+
+            }
+        });
+        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                dialog.dismiss();
+            }
+        });
+
+        alert.show();
 
         return true;
+
+
     }
+
+
+
 
     //Interface
 
@@ -114,6 +184,8 @@ public class MainProjectLister extends ListFragment implements
 
     }
 
+
+
 //Save File Method
     public void saveArrayList(ArrayList<Projekt> arrayList) {
         try {
@@ -122,10 +194,9 @@ public class MainProjectLister extends ListFragment implements
             out.writeObject(arrayList);
             out.close();
             fos.close();
-            Toast.makeText(getActivity(), "Success!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace ();
         }
     }
 
@@ -136,12 +207,12 @@ public class MainProjectLister extends ListFragment implements
             out.writeObject(arrayList);
             out.close();
             fos.close();
-            Toast.makeText(getActivity(), "2 x Success!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace ();
         }
     }
+
 
 //Load Text File Method
 
@@ -149,38 +220,66 @@ public class MainProjectLister extends ListFragment implements
         ArrayList<Projekt> savedArrayList = null;
 
         try {
-            FileInputStream fis = getActivity().openFileInput(FILENAME);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            savedArrayList = (ArrayList<Projekt>) ois.readObject();
-            ois.close();
-            fis.close();
-            Toast.makeText(getActivity(), "Loaded!", Toast.LENGTH_SHORT).show();
+            // get the file and check if it exists before trying to read it
+            File savedFile = new File(getActivity().getFilesDir(), FILENAME);
+            if(savedFile.exists()) {
+                FileInputStream fis = getActivity().openFileInput(FILENAME);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                savedArrayList = (ArrayList<Projekt>) ois.readObject();
+                ois.close();
+                fis.close();
+            } else{
+                // if it doesn't exist, return an empty list
+                savedArrayList = new ArrayList<Projekt>();
+            }
 
         } catch (IOException | ClassNotFoundException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace ();
         }
 
         return savedArrayList;
 
     }
+
 
     public ArrayList<String> getSavedStringList() {
         ArrayList<String> savedArrayList = null;
 
         try {
-            FileInputStream fis = getActivity().openFileInput(FILENAME2);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            savedArrayList = (ArrayList<String>) ois.readObject();
-            ois.close();
-            fis.close();
-            Toast.makeText(getActivity(), "2 x Loaded!", Toast.LENGTH_SHORT).show();
+            // get the file and check if it exists before trying to read it
+            File savedFile2 = new File(getActivity().getFilesDir(), FILENAME2);
+            if(savedFile2.exists()) {
+                FileInputStream fis = getActivity().openFileInput(FILENAME2);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                savedArrayList = (ArrayList<String>) ois.readObject();
+                ois.close();
+                fis.close();
+            } else{
+                // if it doesn't exist, return an empty list
+                savedArrayList = new ArrayList<String>();
+            }
 
         } catch (IOException | ClassNotFoundException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace ();
         }
 
         return savedArrayList;
 
     }
 
+//Method for hiding soft keyboard between fragments//////////////////////////77
+    public static void hideKeyboard(Context ctx) {
+        InputMethodManager inputManager = (InputMethodManager) ctx
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        // check if no view has focus:
+        View v = ((Activity) ctx).getCurrentFocus();
+        if (v == null)
+            return;
+
+        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
+
 }
+
