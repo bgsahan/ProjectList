@@ -1,3 +1,39 @@
+package com.example.lenovo.projectlist;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.ListFragment;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
+/**
+ * Created by Lenovo on 28.1.2017.
+ */
+
 public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongClickListener {
 
     ProjektSingleton projektSingleton;
@@ -15,7 +51,7 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
 
     int actionBar_icon_select;
 
-    private final String FILENAME="testfile13.txt";
+    private final String FILENAME="testfile15.txt";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,10 +63,11 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
         selectedProject = projektArrayList.get(projectNumber);
         listOfTodos = selectedProject.getTodoList();
 
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+
         //This is for enabling actionbar in different fragments
         ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setHasOptionsMenu(true);
-
 
     }
 
@@ -63,6 +100,7 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
                 adapter.notifyDataSetChanged();
 
                 saveArrayList(projektArrayList);
+                addTodoText.setText("");
 
             }
 
@@ -87,19 +125,48 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l){
 
-        listOfTodos.remove(i);
-        saveArrayList(projektArrayList);
-        adapter.notifyDataSetChanged();
-        Toast.makeText(getActivity(), "LongClick works!", Toast.LENGTH_SHORT).show();
+        final int num = i;
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+        //alert.setTitle("Alert!!");
+        alert.setMessage("Confirm deleting?");
+        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                listOfTodos.remove(num);
+                saveArrayList(projektArrayList);
+                adapter.notifyDataSetChanged();
+
+                dialog.dismiss();
+
+            }
+        });
+        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                dialog.dismiss();
+            }
+        });
+
+        alert.show();
 
         return true;
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        saveArrayList(projektArrayList);
+        projektSingleton.setProjektList(loadSavedArrayList());
+    }
 
-//Actionbar inflating/////////////////////////////////////////////////////////////
+    //Actionbar inflating/////////////////////////////////////////////////////////////
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-       inflater.inflate(R.menu.submenu, menu);
-       super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.submenu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     public boolean onOptionsItemSelected(MenuItem item){
@@ -110,15 +177,15 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
             ProjectDetailsFragmentChanger fragInterface = (ProjectDetailsFragmentChanger) getActivity();
             fragInterface.projectListChangeFragment(frag);
 
+            hideKeyboard(getActivity());
+
             actionBar_icon_select = 2;
 
-            Toast.makeText(getActivity(), "Action Details", Toast.LENGTH_SHORT).show();
             return true;
         }
 
         if(id == R.id.action_todo){
             actionBar_icon_select = 3;
-            Toast.makeText(getActivity(), "Action Bar", Toast.LENGTH_SHORT).show();
 
             return true;
         }
@@ -127,6 +194,9 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
             ProjectTodo frag = new ProjectTodo();
             ProjectMainListFragmentChanger fragInterface = (ProjectMainListFragmentChanger) getActivity();
             fragInterface.projectMainListChangeFragment(frag);
+
+            hideKeyboard(getActivity());
+
             return true;
         }
 
@@ -136,12 +206,11 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-      // if(actionBar_icon_select == 3){
-            menu.findItem(R.id.action_todo).setIcon(R.drawable.ic_check_box_white_24dp);
-            Toast.makeText(getActivity(), "3", Toast.LENGTH_SHORT).show();
+        // if(actionBar_icon_select == 3){
+        menu.findItem(R.id.action_todo).setIcon(R.drawable.ic_check_box_white_24dp);
 
-            getActivity().invalidateOptionsMenu();
-       // }
+        getActivity().invalidateOptionsMenu();
+        // }
         super.onPrepareOptionsMenu(menu);
 
 
@@ -155,10 +224,8 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
             out.writeObject(arrayList);
             out.close();
             fos.close();
-            Toast.makeText(getActivity(), "Todo Saved!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -173,21 +240,32 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
             savedArrayList = (ArrayList<Projekt>) ois.readObject();
             ois.close();
             fis.close();
-            Toast.makeText(getActivity(), "Todo Loaded!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException | ClassNotFoundException e) {
-            Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
 
         return savedArrayList;
 
     }
 
+//Method for hiding soft keyboard between fragments////////////////////////////
+    public static void hideKeyboard(Context ctx) {
+        InputMethodManager inputManager = (InputMethodManager) ctx
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
 
-//Interfaces
+        // check if no view has focus:
+        View v = ((Activity) ctx).getCurrentFocus();
+        if (v == null)
+            return;
+
+        inputManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
+
+    //Interfaces
     public interface ProjectMainListFragmentChanger{
 
-    public void projectMainListChangeFragment(Fragment fragment);
+        public void projectMainListChangeFragment(Fragment fragment);
 
     }
 
@@ -196,3 +274,9 @@ public class ProjectTodo extends ListFragment implements AdapterView.OnItemLongC
         public void projectListChangeFragment(Fragment fragment);
 
     }
+
+
+
+
+
+}
