@@ -1,3 +1,20 @@
+package com.example.lenovo.projectlist;
+
+import android.app.Activity;
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+
+/**
+ * Created by Lenovo on 11.2.2017.
+ */
+
 public class CustomTodoAdapter extends ArrayAdapter<TodoProjekt> {
 
     ArrayList<TodoProjekt> dataSet;
